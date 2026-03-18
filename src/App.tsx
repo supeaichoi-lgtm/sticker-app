@@ -92,6 +92,14 @@ export const App: React.FC = () => {
             Sticker <span>Maker</span>
           </h1>
           <p className="subtitle">핑크 빈티지 다이컷 스티커 생성기</p>
+          {loading && (
+            <div className="loading-area">
+              <p className="loading-message">🌸 스티커를 준비 중이에요...</p>
+              <div className="progress-bar-track">
+                <div className="progress-bar-fill" />
+              </div>
+            </div>
+          )}
         </header>
 
         <section>
