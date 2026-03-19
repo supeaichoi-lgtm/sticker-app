@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 type StickerResponse = {
   dataUrl: string;
@@ -13,6 +13,8 @@ export const App: React.FC = () => {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleStyle = (value: string) => {
     setSelectedStyles((prev) =>
@@ -24,20 +26,25 @@ export const App: React.FC = () => {
     );
   };
 
-  const toggleColor = (value: string) => {
-    setSelectedColors((prev) =>
-      prev.includes(value)
-        ? prev.length === 1
-          ? prev
-          : prev.filter((v) => v !== value)
-        : [...prev, value],
-    );
+  const toggleColor = (color: string) => {
+    setSelectedColors([color]);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setUploadedImage(ev.target?.result as string);
+      setPrompt('업로드한 사진을 스티커로 변환해줘');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleGenerate = async () => {
     const trimmed = prompt.trim();
-    if (!trimmed) {
-      setError('먼저 단어나 문장을 입력해 주세요.');
+    if (!trimmed && !uploadedImage) {
+      setError('먼저 단어나 문장을 입력하거나 사진을 업로드해 주세요.');
       return;
     }
 
@@ -55,25 +62,30 @@ export const App: React.FC = () => {
           ? `\n\nColor tones: ${selectedColors.join(', ')}`
           : '';
 
-      const fullPrompt = `${trimmed}${styleText}${colorText}`;
+      const fullPrompt = `EXACTLY ONE single die-cut sticker, ${trimmed}${styleText}${colorText}, pure white background, thick white outline around the subject, flat vector illustration, no shadow, transparent-style background, one item only, centered composition, sticker sheet style`;
+
+      const body: Record<string, string> = { prompt: fullPrompt };
+      if (uploadedImage) {
+        body.image = uploadedImage;
+      }
 
       const res = await fetch('https://ai-sticker-server.onrender.com/api/sticker', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: fullPrompt }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
+        const resBody = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(body.error ?? `요청에 실패했어요. (status ${res.status})`);
+        throw new Error(resBody.error ?? `요청에 실패했어요. (status ${res.status})`);
       }
 
-      const body = (await res.json()) as StickerResponse;
-      setImage(body.dataUrl);
+      const resBody = (await res.json()) as StickerResponse;
+      setImage(resBody.dataUrl);
     } catch (e) {
       const message =
         e instanceof Error ? e.message : '알 수 없는 오류가 발생했어요.';
@@ -109,167 +121,85 @@ export const App: React.FC = () => {
             <br />
             만들고 싶은 스티커를 간단히 적어 보세요.
           </p>
+
+          {/* 사진 업로드 */}
+          <p className="section-label" style={{ marginTop: 18 }}>
+            📸 사진으로 스티커 만들기
+          </p>
+          <div
+            className="upload-area"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {uploadedImage ? (
+              <img src={uploadedImage} alt="업로드된 사진" className="uploaded-preview" />
+            ) : (
+              <p className="upload-hint">📁 클릭해서 사진 업로드</p>
+            )}
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleFileUpload}
+          />
+          {uploadedImage && (
+            <button
+              type="button"
+              className="remove-btn"
+              onClick={() => {
+                setUploadedImage(null);
+                setPrompt('');
+              }}
+            >
+              ✕ 사진 제거
+            </button>
+          )}
+
           <p className="section-label" style={{ marginTop: 18 }}>
             스티커 스타일
           </p>
           <div className="style-grid">
-            <button
-              type="button"
-              className={`style-card ${
-                selectedStyles.includes('line art') ? 'active' : ''
-              }`}
-              onClick={() => toggleStyle('line art')}
-            >
-              <span className="style-emoji">🖊️</span>
-              <span className="style-name">손그림 라인</span>
-              <span className="style-sub">line art</span>
-            </button>
-            <button
-              type="button"
-              className={`style-card ${
-                selectedStyles.includes('kawaii cute') ? 'active' : ''
-              }`}
-              onClick={() => toggleStyle('kawaii cute')}
-            >
-              <span className="style-emoji">🐣</span>
-              <span className="style-name">카와이</span>
-              <span className="style-sub">kawaii cute</span>
-            </button>
-            <button
-              type="button"
-              className={`style-card ${
-                selectedStyles.includes('vintage floral') ? 'active' : ''
-              }`}
-              onClick={() => toggleStyle('vintage floral')}
-            >
-              <span className="style-emoji">🌹</span>
-              <span className="style-name">빈티지 플로럴</span>
-              <span className="style-sub">vintage floral</span>
-            </button>
-            <button
-              type="button"
-              className={`style-card ${
-                selectedStyles.includes('photorealistic') ? 'active' : ''
-              }`}
-              onClick={() => toggleStyle('photorealistic')}
-            >
-              <span className="style-emoji">📸</span>
-              <span className="style-name">실사 사진</span>
-              <span className="style-sub">photorealistic</span>
-            </button>
-            <button
-              type="button"
-              className={`style-card ${
-                selectedStyles.includes('minimal clean') ? 'active' : ''
-              }`}
-              onClick={() => toggleStyle('minimal clean')}
-            >
-              <span className="style-emoji">◻️</span>
-              <span className="style-name">미니멀</span>
-              <span className="style-sub">minimal clean</span>
-            </button>
+            {[
+              { value: 'line art', emoji: '🖊️', name: '손그림 라인', sub: 'line art' },
+              { value: 'kawaii cute', emoji: '🐣', name: '카와이', sub: 'kawaii cute' },
+              { value: 'vintage floral', emoji: '🌹', name: '빈티지 플로럴', sub: 'vintage floral' },
+              { value: 'photorealistic', emoji: '📸', name: '실사 사진', sub: 'photorealistic' },
+              { value: 'minimal clean', emoji: '◻️', name: '미니멀', sub: 'minimal clean' },
+            ].map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                className={`style-card ${selectedStyles.includes(s.value) ? 'active' : ''}`}
+                onClick={() => toggleStyle(s.value)}
+              >
+                <span className="style-emoji">{s.emoji}</span>
+                <span className="style-name">{s.name}</span>
+                <span className="style-sub">{s.sub}</span>
+              </button>
+            ))}
           </div>
 
           <p className="section-label" style={{ marginTop: 6 }}>
             색감 톤
           </p>
           <div className="color-grid">
-            <button
-              type="button"
-              className={`color-chip ${
-                selectedColors.includes(
-                  'soft pastel pink and rose tones, blush pink, dusty rose',
-                )
-                  ? 'active'
-                  : ''
-              }`}
-              onClick={() =>
-                toggleColor(
-                  'soft pastel pink and rose tones, blush pink, dusty rose',
-                )
-              }
-            >
-              <span
-                className="dot"
-                style={{
-                  background:
-                    'linear-gradient(135deg,#f7c8d8,#e8799a)',
-                }}
-              />
-              파스텔 핑크
-            </button>
-            <button
-              type="button"
-              className={`color-chip ${
-                selectedColors.includes(
-                  'soft pastel pink with creamy ivory and warm white accents',
-                )
-                  ? 'active'
-                  : ''
-              }`}
-              onClick={() =>
-                toggleColor(
-                  'soft pastel pink with creamy ivory and warm white accents',
-                )
-              }
-            >
-              <span
-                className="dot"
-                style={{
-                  background:
-                    'linear-gradient(135deg,#fff5f8,#f7c8d8)',
-                }}
-              />
-              크리미 핑크
-            </button>
-            <button
-              type="button"
-              className={`color-chip ${
-                selectedColors.includes(
-                  'deep rose and mauve with muted dusty pink tones',
-                )
-                  ? 'active'
-                  : ''
-              }`}
-              onClick={() =>
-                toggleColor(
-                  'deep rose and mauve with muted dusty pink tones',
-                )
-              }
-            >
-              <span
-                className="dot"
-                style={{
-                  background:
-                    'linear-gradient(135deg,#e8799a,#c45070)',
-                }}
-              />
-              딥 로즈
-            </button>
-            <button
-              type="button"
-              className={`color-chip ${
-                selectedColors.includes(
-                  'pastel pink with soft lavender and lilac accents',
-                )
-                  ? 'active'
-                  : ''
-              }`}
-              onClick={() =>
-                toggleColor(
-                  'pastel pink with soft lavender and lilac accents',
-                )
-              }
-            >
-              <span
-                className="dot"
-                style={{
-                  background:
-                    'linear-gradient(135deg,#f7c8d8,#c8a0d0)',
-                }}
-              />
-              핑크 라벤더
-            </button>
+            {[
+              { value: 'soft pastel pink and rose tones, blush pink, dusty rose', bg: 'linear-gradient(135deg,#f7c8d8,#e8799a)', label: '파스텔 핑크' },
+              { value: 'soft pastel pink with creamy ivory and warm white accents', bg: 'linear-gradient(135deg,#fff5f8,#f7c8d8)', label: '크리미 핑크' },
+              { value: 'deep rose and mauve with muted dusty pink tones', bg: 'linear-gradient(135deg,#e8799a,#c45070)', label: '딥 로즈' },
+              { value: 'pastel pink with soft lavender and lilac accents', bg: 'linear-gradient(135deg,#f7c8d8,#c8a0d0)', label: '핑크 라벤더' },
+            ].map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                className={`color-chip ${selectedColors.includes(c.value) ? 'active' : ''}`}
+                onClick={() => toggleColor(c.value)}
+              >
+                <span className="dot" style={{ background: c.bg }} />
+                {c.label}
+              </button>
+            ))}
           </div>
 
           <textarea
@@ -302,10 +232,18 @@ export const App: React.FC = () => {
             <div className="preview-box">
               <img src={image} alt="생성된 스티커" />
             </div>
+            
+              href={image}
+              download="sticker.png"
+              className="download-btn"
+            >
+              💾 스티커 저장하기
+            </a>
           </section>
         )}
       </div>
     </div>
   );
 };
+```
 

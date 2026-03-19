@@ -450,5 +450,57 @@ body::after {
     width: 100%;
   }
 }
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  background: white;
+  margin-bottom: 8px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+
+.upload-area:hover {
+  border-color: var(--pink-light);
+}
+
+.upload-hint {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.uploaded-preview {
+  max-height: 120px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.download-btn {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--pink);
+  color: white;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
 
 
