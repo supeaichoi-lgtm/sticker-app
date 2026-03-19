@@ -77,6 +77,8 @@ export const App: React.FC = () => {
     }
   };
 
+  const STICO_STYLE = 'A realistic glitter transparent crystal kawaii die-cut sticker, Dense sparkling glitter particles suspended in thick clear resin, intense light-catching sparkle with gold and silver glitter mix, photorealistic sparkle detail with dimensional depth. Transparent clear crystal vinyl finish, see-through glossy surface with glass-like clarity, subtle refractive edge glow along contours, high-gloss clear coat creating wet appearance. Kawaii illustrated line art style, soft monochromatic pink palette, delicate fine black ink outlines, white thick border following exact die-cut contour, flat 2D illustration. Clean white background, studio product photography lighting, cute kawaii aesthetic';
+
   return (
     <div className="wrapper">
       <div className="card">
@@ -112,12 +114,11 @@ export const App: React.FC = () => {
               { value: 'line art', emoji: '🖊️', name: '손그림 라인', sub: 'line art' },
               { value: 'kawaii cute', emoji: '🐣', name: '카와이', sub: 'kawaii cute' },
               { value: 'vintage floral', emoji: '🌹', name: '빈티지 플로럴', sub: 'vintage floral' },
-{ value: 'minimal clean', emoji: '◻️', name: '미니멀', sub: 'minimal clean' },
-              { value: 'A realistic glitter transparent crystal kawaii die-cut sticker, Dense sparkling glitter particles suspended in thick clear resin, intense light-catching sparkle with gold and silver glitter mix, photorealistic sparkle detail with dimensional depth. Transparent clear crystal vinyl finish, see-through glossy surface with glass-like clarity, subtle refractive edge glow along contours, high-gloss clear coat creating wet appearance. Kawaii illustrated line art style, soft monochromatic pink palette, delicate fine black ink outlines, white thick border following exact die-cut contour, flat 2D illustration with subtle inner shadow for depth. Clean white background, studio product photography lighting, sharp focus on glitter texture and transparent material, cute kawaii aesthetic', emoji: '✨', name: '스띠꼬', sub: 'crystal glitter' },
               { value: 'minimal clean', emoji: '◻️', name: '미니멀', sub: 'minimal clean' },
+              { value: STICO_STYLE, emoji: '✨', name: '스띠꼬', sub: 'crystal glitter' },
             ].map((s) => (
               <button
-                key={s.value}
+                key={s.name}
                 type="button"
                 className={`style-card ${selectedStyles.includes(s.value) ? 'active' : ''}`}
                 onClick={() => toggleStyle(s.value)}
@@ -181,8 +182,8 @@ export const App: React.FC = () => {
             <div className="preview-box">
               <img src={image} alt="생성된 스티커" />
             </div>
-          <a
-href={image}
+            
+              href={image}
               download="sticker.png"
               className="download-btn"
             >
