@@ -112,7 +112,8 @@ export const App: React.FC = () => {
               { value: 'line art', emoji: '🖊️', name: '손그림 라인', sub: 'line art' },
               { value: 'kawaii cute', emoji: '🐣', name: '카와이', sub: 'kawaii cute' },
               { value: 'vintage floral', emoji: '🌹', name: '빈티지 플로럴', sub: 'vintage floral' },
-              { value: 'photorealistic', emoji: '📸', name: '실사 사진', sub: 'photorealistic' },
+{ value: 'minimal clean', emoji: '◻️', name: '미니멀', sub: 'minimal clean' },
+              { value: 'A realistic glitter transparent crystal kawaii die-cut sticker, Dense sparkling glitter particles suspended in thick clear resin, intense light-catching sparkle with gold and silver glitter mix, photorealistic sparkle detail with dimensional depth. Transparent clear crystal vinyl finish, see-through glossy surface with glass-like clarity, subtle refractive edge glow along contours, high-gloss clear coat creating wet appearance. Kawaii illustrated line art style, soft monochromatic pink palette, delicate fine black ink outlines, white thick border following exact die-cut contour, flat 2D illustration with subtle inner shadow for depth. Clean white background, studio product photography lighting, sharp focus on glitter texture and transparent material, cute kawaii aesthetic', emoji: '✨', name: '스띠꼬', sub: 'crystal glitter' },
               { value: 'minimal clean', emoji: '◻️', name: '미니멀', sub: 'minimal clean' },
             ].map((s) => (
               <button
