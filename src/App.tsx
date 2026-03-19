@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 
 type StickerResponse = {
   dataUrl: string;
@@ -13,8 +13,6 @@ export const App: React.FC = () => {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleStyle = (value: string) => {
     setSelectedStyles((prev) =>
@@ -30,21 +28,10 @@ export const App: React.FC = () => {
     setSelectedColors([color]);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setUploadedImage(ev.target?.result as string);
-      setPrompt('업로드한 사진을 스티커로 변환해줘');
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleGenerate = async () => {
     const trimmed = prompt.trim();
-    if (!trimmed && !uploadedImage) {
-      setError('먼저 단어나 문장을 입력하거나 사진을 업로드해 주세요.');
+    if (!trimmed) {
+      setError('먼저 단어나 문장을 입력해 주세요.');
       return;
     }
 
@@ -62,19 +49,14 @@ export const App: React.FC = () => {
           ? `\n\nColor tones: ${selectedColors.join(', ')}`
           : '';
 
-      const fullPrompt = `EXACTLY ONE single die-cut sticker, ${trimmed}${styleText}${colorText}, pure white background, thick white outline around the subject, flat vector illustration, no shadow, transparent-style background, one item only, centered composition, sticker sheet style`;
-
-      const body: Record<string, string> = { prompt: fullPrompt };
-      if (uploadedImage) {
-        body.image = uploadedImage;
-      }
+      const fullPrompt = `EXACTLY ONE single die-cut sticker, ${trimmed}${styleText}${colorText}, pure white background, thick white outline around the subject, flat vector illustration, no shadow, one item only, centered composition`;
 
       const res = await fetch('https://ai-sticker-server.onrender.com/api/sticker', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ prompt: fullPrompt }),
       });
 
       if (!res.ok) {
@@ -121,40 +103,6 @@ export const App: React.FC = () => {
             <br />
             만들고 싶은 스티커를 간단히 적어 보세요.
           </p>
-
-          {/* 사진 업로드 */}
-          <p className="section-label" style={{ marginTop: 18 }}>
-            📸 사진으로 스티커 만들기
-          </p>
-          <div
-            className="upload-area"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {uploadedImage ? (
-              <img src={uploadedImage} alt="업로드된 사진" className="uploaded-preview" />
-            ) : (
-              <p className="upload-hint">📁 클릭해서 사진 업로드</p>
-            )}
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            style={{ display: 'none' }}
-            onChange={handleFileUpload}
-          />
-          {uploadedImage && (
-            <button
-              type="button"
-              className="remove-btn"
-              onClick={() => {
-                setUploadedImage(null);
-                setPrompt('');
-              }}
-            >
-              ✕ 사진 제거
-            </button>
-          )}
 
           <p className="section-label" style={{ marginTop: 18 }}>
             스티커 스타일
@@ -232,7 +180,7 @@ export const App: React.FC = () => {
             <div className="preview-box">
               <img src={image} alt="생성된 스티커" />
             </div>
-            <a
+            
               href={image}
               download="sticker.png"
               className="download-btn"
