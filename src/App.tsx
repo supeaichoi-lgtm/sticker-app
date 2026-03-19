@@ -180,6 +180,7 @@ export const App: React.FC = () => {
             <div className="preview-box">
               <img src={image} alt="생성된 스티커" />
             </div>
+          <a
 href={image}
               download="sticker.png"
               className="download-btn"
